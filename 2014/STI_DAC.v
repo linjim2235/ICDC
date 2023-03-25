@@ -184,14 +184,12 @@ begin
 end
 else if(current_state == OUTPUT)
 begin
-	if(counter_p == 1)
-	begin
+	if(counter_p == 0)
 		pixel_wr <= 1;
-	end
-	else if(counter_p == 0)
-		pixel_addr <= pixel_addr +1;
 	else 
 		pixel_wr <= 0;
+	if(pixel_wr == 1)
+		pixel_addr <= pixel_addr +1;
 	pixel_dataout[counter_p] <= buffer[ptr];
 end
 else if(current_state == ADD_ZERO)
