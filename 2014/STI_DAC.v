@@ -24,7 +24,8 @@ parameter INPUT_DATA = 1;
 parameter DEAL_WITH_DATA = 2;
 parameter OUTPUT = 3;
 parameter ADD_ZERO = 4;
-parameter FINISH = 5;
+parameter DOWN_ZERO = 5;
+parameter FINISH = 6;
 
 //==============================================================================
 always @(posedge clk) begin
@@ -37,20 +38,22 @@ end
 always @(*) begin
 case (current_state)
 	INIT:
-		next_state =  (load)? INPUT_DATA : INIT;
+		if(pi_end)
+			next_state = ADD_ZERO;
+		else
+			next_state =  (load)? INPUT_DATA : INIT;
 	INPUT_DATA:
 		next_state = DEAL_WITH_DATA;
 	DEAL_WITH_DATA:
 		next_state = OUTPUT;
 	OUTPUT:
 	begin
-		if(pi_end)
-			next_state = ADD_ZERO;
-		else
-			next_state = (counter == 0)?INIT:OUTPUT;
+		next_state = (counter == 0)?INIT:OUTPUT;
 	end
 	ADD_ZERO:
-		next_state = (pixel_addr == 8'd255)?FINISH:ADD_ZERO;
+		next_state = (pixel_addr == 8'd255)?FINISH:DOWN_ZERO;
+	DOWN_ZERO:
+		next_state = ADD_ZERO;
 	FINISH:
 		next_state = FINISH;
 	default: 
@@ -163,7 +166,7 @@ always @(posedge clk)
 begin
     if(reset)
         counter_p <= 7;
-    else if( current_state == OUTPUT && counter_p == 0)
+    else if( next_state == OUTPUT && counter_p == 0)
     begin
         counter_p <= 7;
     end
@@ -182,7 +185,7 @@ begin
 	pixel_wr <= 0;
 	pixel_dataout <= 0;
 end
-else if(current_state == OUTPUT)
+else if(current_state == OUTPUT || next_state == OUTPUT)
 begin
 	if(counter_p == 0)
 		pixel_wr <= 1;
@@ -192,10 +195,10 @@ begin
 		pixel_addr <= pixel_addr +1;
 	pixel_dataout[counter_p] <= buffer[ptr];
 end
-else if(current_state == ADD_ZERO)
+else if(next_state == ADD_ZERO)
 begin
 	pixel_wr <= 1;
-	pixel_addr <= pixel_addr +1;
+	
 	pixel_dataout <= 0;
 end
 else 
