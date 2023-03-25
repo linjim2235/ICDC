@@ -27,7 +27,7 @@ parameter DEAL_WITH_DATA = 2;
 parameter OUTPUT_SO = 3;
 parameter OUTPUT_PIXEL = 4;
 parameter ADD_ZERO = 5;
-parameter FINISH = 5;
+parameter FINISH = 6;
 
 //==============================================================================
 always @(posedge clk) begin
@@ -156,6 +156,7 @@ if(reset)
 begin
 	so_data <= 0;
 	so_valid <= 0;
+	pixel_buffer <= 0;
 end
 else if(next_state == OUTPUT_SO)
 begin
@@ -174,10 +175,10 @@ end
 always @(posedge clk)
 begin
     if(reset)
-        ptr_p <= 31;
+        ptr_p <= 5'd31;
     else if(current_state == INPUT_DATA)
-        ptr_p <= 31;
-    else if(next_state == OUTPUT_SO)
+        ptr_p <= 5'd31;
+    else if(current_state == OUTPUT_SO)
         ptr_p <= ptr_p -1;
 end
 
@@ -194,6 +195,8 @@ else if(next_state == OUTPUT_PIXEL)
 begin
 	pixel_wr <= 1;
 	pixel_dataout <= pixel_buffer[31:24];
+	if(pi_length == 2'b11)
+	begin
 	case (counter_p)
 		3'd4:
 			pixel_buffer[31:24] <= pixel_buffer[23:16];
@@ -202,6 +205,18 @@ begin
 		3'd2:
 			pixel_buffer[31:24] <= pixel_buffer[7:0];
 	endcase
+	end
+	else if(pi_length == 2'b10)
+	begin
+	case (counter_p)
+		3'd3:
+			pixel_buffer[31:24] <= pixel_buffer[23:16];
+		3'd2:
+			pixel_buffer[31:24] <= pixel_buffer[15:8];
+	endcase
+	end
+	else if(pi_length == 2'b01 && counter_p == 3'd2)
+			pixel_buffer[31:24] <= pixel_buffer[23:16];
 end
 else if(next_state == ADD_ZERO)
 begin
@@ -214,6 +229,9 @@ else
 if(current_state == OUTPUT_PIXEL || current_state == ADD_ZERO)
 	pixel_addr <= pixel_addr + 1;
 
+if(pixel_addr == 8'd255)
+	pixel_finish <= 1;
 end
+
 
 endmodule
