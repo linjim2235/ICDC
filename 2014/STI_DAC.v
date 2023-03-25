@@ -25,6 +25,8 @@ parameter FINISH = 5;
 
 //==============================================================================
 always @(posedge clk) begin
+	
+	/////////////////////////////////////////sdssssssssssssssss
 if(reset)
 	current_state <= INIT;
 else
