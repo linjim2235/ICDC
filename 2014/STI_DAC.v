@@ -163,13 +163,13 @@ always @(posedge clk)
 begin
     if(reset)
         counter_p <= 7;
-    else if(counter_p == 0)
+    else if( current_state == OUTPUT && counter_p == 0)
     begin
-        counter_p = 7;
+        counter_p <= 7;
     end
-    else
+    else if (next_state == OUTPUT)
     begin
-        counter_p = counter_p - 1;
+        counter_p <= counter_p - 1;
     end
 end
 
@@ -177,22 +177,24 @@ end
 always @(posedge clk) begin
 if(reset)
 begin
-	pixel_addr <= 0;
+	pixel_addr <= 8'd0;
 	pixel_finish <= 0;
 	pixel_wr <= 0;
 	pixel_dataout <= 0;
 end
-else if(current_state == OUTPUT && counter == 0)
-	pixel_addr <= pixel_addr +1;
-else if(next_state == OUTPUT)
+else if(current_state == OUTPUT)
 begin
 	if(counter_p == 1)
+	begin
 		pixel_wr <= 1;
+	end
+	else if(counter_p == 0)
+		pixel_addr <= pixel_addr +1;
 	else 
 		pixel_wr <= 0;
 	pixel_dataout[counter_p] <= buffer[ptr];
 end
-else if(next_state == ADD_ZERO)
+else if(current_state == ADD_ZERO)
 begin
 	pixel_wr <= 1;
 	pixel_addr <= pixel_addr +1;
