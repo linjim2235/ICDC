@@ -25,8 +25,6 @@ parameter FINISH = 5;
 
 //==============================================================================
 always @(posedge clk) begin
-	
-	/////////////////////////////////////////sdssssssssssssssss
 if(reset)
 	current_state <= INIT;
 else
@@ -39,14 +37,35 @@ case (current_state)
 	INIT:
 		next_state =  (load)? INPUT_DATA : INIT;
 	INPUT_DATA:
-		next_state = 
+		next_state = DEAL_WITH_DATA;
+	DEAL_WITH_DATA:
+		next_state = OUTPUT_SO;
+	OUTPUT_SO:
+		next_state = OUTPUT_PIXEL;
+	OUTPUT_PIXEL:
+		next_state = FINISH;
+	FINISH:
+		next_state = FINISH;
 	default: 
 		next_state = INIT;
 endcase
 end
 
+// buffer
 always @(posedge clk) begin
-	
+if(reset)
+	buffer <= 32'b0;
+else if(current_state == INPUT_DATA)
+begin
+	case (pi_length)
+		2'b10:
+			buffer <= (pi_fill)?{pi_data, 16'b0}:{16'b0, pi_data};
+		2'b11:
+			buffer <= (pi_fill)?{pi_data, 16'b0}:{16'b0, pi_data};
+		default: 
+			buffer <= {16'b0, pi_data};
+	endcase
+end
 end
 
 
