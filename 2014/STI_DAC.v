@@ -68,6 +68,13 @@ if(reset)
 else if(current_state == INPUT_DATA)
 begin
 	case (pi_length)
+		2'b00:
+		begin
+			if(pi_low)
+				buffer <= {pi_data[15:8], 24'b0};
+			else
+				buffer <= {pi_data[7:0], 24'b0};
+		end
 		2'b10:
 			buffer <= (pi_fill) ? {pi_data,16'b0} : {8'b0, pi_data, 8'b0};
 		2'b11:
@@ -75,14 +82,6 @@ begin
 		default: 
 			buffer <= {pi_data,16'b0};
 	endcase
-end
-else if(current_state == DEAL_WITH_DATA)
-begin
-	if(pi_length == 2'b00)
-	begin
-		if(!pi_low)
-			buffer[31:24]= buffer[23:16];
-	end
 end
 end
 
