@@ -47,9 +47,7 @@ case (current_state)
 	DEAL_WITH_DATA:
 		next_state = OUTPUT;
 	OUTPUT:
-	begin
 		next_state = (counter == 0)?INIT:OUTPUT;
-	end
 	ADD_ZERO:
 		next_state = (pixel_addr == 8'd255)?FINISH:DOWN_ZERO;
 	DOWN_ZERO:
@@ -76,9 +74,19 @@ begin
 				buffer <= {pi_data[7:0], 24'b0};
 		end
 		2'b10:
-			buffer <= (pi_fill) ? {pi_data,16'b0} : {8'b0, pi_data, 8'b0};
+		begin
+			if(pi_fill)
+				buffer <= {pi_data, 16'b0};
+			else
+				buffer <= {8'b0, pi_data, 8'b0};
+		end
 		2'b11:
-			buffer <= (pi_fill)?{pi_data, 16'b0}:{16'b0, pi_data};
+		begin
+			if(pi_fill)
+				buffer <= {pi_data, 16'b0};
+			else
+				buffer <= {16'b0, pi_data};
+		end
 		default: 
 			buffer <= {pi_data,16'b0};
 	endcase
@@ -93,21 +101,13 @@ always @(posedge clk) begin
 	begin
 	case(pi_length)
 		2'b00:
-		begin
 			counter <= 7;
-		end
 		2'b01:
-		begin
 			counter <= 15;
-		end
 		2'b10:
-		begin
 			counter <= 23;
-		end
 		2'b11:
-		begin
 			counter <= 31;
-		end
     endcase
 	end
 	else if(current_state == OUTPUT)
@@ -121,7 +121,7 @@ if(reset)
 else if(current_state == INPUT_DATA)
 begin
 	if(pi_msb)
-		ptr <= 6'd31;
+		ptr <= 5'd31;
 	else 
 	begin
 		case(pi_length)
